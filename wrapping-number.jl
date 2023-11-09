@@ -8,32 +8,6 @@ using LinearAlgebra
 
 product = Base.Iterators.product
 
-# some function from T² to S²
-# x,y ∈ [0,1]
-function myf(x, y)
-  #return -sphr_euc(-x*2*π, -y*2*π)
-  return sphr_euc(x*2*π, x < 0.5 ? y*2*π : -y*2*π)
-end
-
-# same function, just taking tuple as argument
-myf(tup) = myf(tup[1],tup[2])
-
-# point on S² from spherical coordinates
-# θ : polar angle (z-axis = 0)
-# φ : azimuthal angle (from x-z plane)
-function sphr_euc(θ, φ)
-  return [sin(θ)*cos(φ), sin(θ)*sin(φ), cos(θ)]
-end
-sphr_euc(tup) = sphr_euc(tup[1],tup[2])
-
-dist(v,w) = sqrt(sum(((v - w) .^ 2)))
-dist(v) = sqrt(sum(((v) .^ 2)))
-
-# v,w : tuple/array (θ,φ)
-function euc_dist(v,w)
-  return dist(sphr_euc(v), sphr_euc(w))
-end
-
 # ============================================
 # planar graph functionality
 
@@ -67,16 +41,57 @@ neigh_left(G, u, v) = G.E[u][v][1]
 neigh_right(G, u, v) = G.E[u][v][2]
 # return value of 0 indicates that u->v is a boundary edge!
 
-# test
-N = 4
-F = [(1,2,3),(1,3,4)]
-G = PlanarGraph(N,F)
+## test
+#N = 4
+#F = [(1,2,3),(1,3,4)]
+#G = PlanarGraph(N,F)
+
+
+
+# ============================================
+# set up function
+
+## test function from T² to S²
+## x,y ∈ [0,1]
+#function myf(x, y)
+#  #return -sphr_euc(-x*2*π, -y*2*π)
+#  return sphr_euc(x*2*π, x < 0.5 ? y*2*π : -y*2*π)
+#end
+
+# H(k) = r¹ σ_z + r² σ_x + r³ σ_y
+# where r¹,r²,r³ = ChernIns(k_x,k_y)
+M = 1
+function ChernIns(kx,ky)
+  return normalize([M + 4 - 2*cos(kx) - 2*cos(ky), sin(kx), sin(ky)])
+end
+
+myf(x,y) = ChernIns(2*π*x, 2*π*y)
+
+# same function, just taking tuple as argument
+myf(tup) = myf(tup[1],tup[2])
+
+# point on S² from spherical coordinates
+# θ : polar angle (z-axis = 0)
+# φ : azimuthal angle (from x-z plane)
+function sphr_euc(θ, φ)
+  return [sin(θ)*cos(φ), sin(θ)*sin(φ), cos(θ)]
+end
+sphr_euc(tup) = sphr_euc(tup[1],tup[2])
+
+dist(v,w) = sqrt(sum(((v - w) .^ 2)))
+dist(v) = sqrt(sum(((v) .^ 2)))
+
+# v,w : tuple/array (θ,φ)
+function euc_dist(v,w)
+  return dist(sphr_euc(v), sphr_euc(w))
+end
+
 
 # ============================================
 # set up triangulation on T²
 
 # vertices
-L, W = 100,100
+L, W = 1000,1000
 N = L * W
 Vcoord = [v for v ∈  product(LinRange(0,1-1/W,W),LinRange(0,1-1/L,W))]
 
@@ -107,10 +122,10 @@ Tri = PlanarGraph(N,F)
 
 #draw(PNG("lattice-torus.png", 8cm, 8cm), gplot(tri, nodelabel=1:N))
 
-# get max dist of adj vertics under myf
-dd = [[(dist(myf_dscrt(u), myf_dscrt(v)), u, v) for v in keys(Tri.E[u])] for u in 1:N]
-dd = collect(Iterators.flatten(dd))
-max_dist_ind = argmax(dd)
+## get max dist of adj vertics under myf
+#dd = [[(dist(myf_dscrt(u), myf_dscrt(v)), u, v) for v in keys(Tri.E[u])] for u in 1:N]
+#dd = collect(Iterators.flatten(dd))
+#max_dist_ind = argmax(dd)
 
 
 
